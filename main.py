@@ -13,7 +13,7 @@ def main():
     auth.set_access_token(atoken, asecret)
 
     # Stuff we want to search for
-    keywords = ["#etherium", "#litecoin", "#bitcoin", "bitcoin"]
+    keywords = ["bitcoin", "btc", "satoshi", "xbt"]
 
     # Start listening
     twitterStream = tweepy.Stream(auth, Listener())
