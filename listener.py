@@ -1,28 +1,37 @@
 import json
 import csv
 import tweepy
-from tweetWriter import writeTweet
+import writers
+from spamFilter import validTweet
 from unidecode import unidecode
 
 
 class Listener(tweepy.streaming.StreamListener):
 
-    def on_data(self, data):
+    def on_status(self, status):
 
         try:
-            data = json.loads(data) # Convert into python object
-            text = unidecode(data["text"]) # Decode unicode
-            unix = data["timestamp_ms"]
+            # Filter non-english tweets
+            if status.lang != "en":
+                return True
 
-            writeTweet(unix, text)
-            
+            # If tweet is more than 140 chars, it will be 'truncated' and the extended tweet must be accessed.
+            if status.truncated:
+                text = status.extended_tweet["full_text"]
+            else:
+                text = status.text
+            unix = status.timestamp_ms
+
+            if validTweet(text):
+                writers.writeTweet(unix, text)
+            else:
+                writers.writeSpam(unix, text)
             print(unix)
             print(text + "\n\n###########\n")
         except KeyError as err:
             print(str(err))
-
-        return True
-
+        
+        print(text)
     def on_error(self, status_code):
         if status_code == 420:
             # If 420, we have been rate limited. Return false and let tweepy handle it.
